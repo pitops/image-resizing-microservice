@@ -2,24 +2,37 @@ const express = require('express')
 const fs = require('fs')
 const uuid = require('uuid/v4')
 const gm = require('gm')
+const fileUpload = require('express-fileupload')
+const cors = require('cors')
+const util = require('util')
 const app = express()
 const port = 1337
+
+app.use(cors())
+app.use(fileUpload())
 
 app.get('/hello', (request, response) => {
   response.send('World!')
 })
 
 // localhost:1337/resize/:width/:height
-app.get('/resize/:width/:height', async (request, response) => {
+app.post('/resize/:width/:height', async (request, response) => {
+  if (request.files === null) {
+    return response.status(400).json({ msg: 'No file uploaded' })
+  }
+
+  const file = request.files.file
+  const fileMove = util.promisify(file.mv)
+
   const hash = uuid()
   const { width, height } = request.params
-  const image = `${process.cwd()}/thumbnail.png`
-  const outputImage = `${process.cwd()}/tmp.${hash}.png`
+  const sourceImage = `${process.cwd()}/uploads/${hash}.${file.name}`
+  const outputImage = `${process.cwd()}/uploads/tmp.${hash}.png`
   const { aspectRatio } = request.query
 
   const resize = () => {
     return new Promise((resolve, reject) => {
-      gm(image)
+      gm(sourceImage)
         .resize(
           width,
           height,
@@ -38,10 +51,13 @@ app.get('/resize/:width/:height', async (request, response) => {
   }
 
   try {
+    await fileMove(sourceImage)
     await resize()
+
     response.sendFile(outputImage)
     response.on('finish', () => {
       try {
+        fs.unlinkSync(sourceImage)
         fs.unlinkSync(outputImage)
       } catch (e) {
         console.log('error removing', outputImage)
