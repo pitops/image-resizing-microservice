@@ -13,17 +13,36 @@ export const FileUploadForm = styled.form`
   padding: 10px;
   border-radius: 10px;
   display: flex;
-  justify-content: center;
+  /* justify-content: center; */
   margin: 0 auto;
   min-width: 200px;
+  flex-direction: column;
+  align-items: center;
 
   label {
     font-weight: 300;
     margin-right: 15px;
   }
 
-  input {
+  input[type='file'] {
     width: 80px;
+  }
+
+  input[type='number'] {
+    padding: 5px;
+    border-radius: 5px;
+    width: 40px;
+    border: 1px solid #efefef;
+    margin-left: 5px;
+  }
+`
+
+export const FileUploadParametersContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+
+  label:not(:first-of-type) {
+    margin-top: 10px;
   }
 `
 

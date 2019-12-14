@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import {
   FileUploadContainer,
   FileUploadForm,
-  FileUploadButton
+  FileUploadButton,
+  FileUploadParametersContainer
 } from './FileUpload.styled'
 import ProgressBar from './ProgressBar'
 import axios from 'axios'
@@ -11,6 +12,9 @@ export default function FileUpload () {
   const [file, setFile] = useState('')
   const [filename, setFilename] = useState('Choose File')
   const [message, setMessage] = useState('Start resize')
+  const [width, setWidth] = useState('')
+  const [height, setHeight] = useState('')
+  const [ignoreAspectRatio, setIgnoreAspectRatio] = useState(false)
   const [uploadPercentage, setUploadPercentage] = useState(0)
   const [showProgressBar, setShowProgressBar] = useState(false)
 
@@ -38,7 +42,7 @@ export default function FileUpload () {
       setShowProgressBar(true)
       setMessage('Uploading!')
       const res = await axios.post(
-        'http://localhost:1337/resize/500/500',
+        `http://localhost:1337/resize/${width}/${height}?ignoreAspectRatio=${ignoreAspectRatio}`,
         formData,
         {
           responseType: 'arraybuffer',
@@ -61,9 +65,7 @@ export default function FileUpload () {
       setShowProgressBar(false)
 
       setTimeout(() => {
-        setFilename('Choose File')
-        setMessage('Start resize')
-        setUploadPercentage(0)
+        resetForm()
       }, 10000)
     } catch (err) {
       setShowProgressBar(false)
@@ -73,6 +75,15 @@ export default function FileUpload () {
         setMessage(err.response.data.msg)
       }
     }
+  }
+
+  const resetForm = () => {
+    setFilename('Choose File')
+    setMessage('Start resize')
+    setUploadPercentage(0)
+    setWidth(0)
+    setHeight(0)
+    setIgnoreAspectRatio(false)
   }
 
   return (
@@ -89,13 +100,50 @@ export default function FileUpload () {
           id='fileInput'
           onChange={onChange}
         />
+        <FileUploadParametersContainer>
+          <p>Parameters</p>
+          <label htmlFor='width'>
+            Width
+            <input
+              type='number'
+              name='width'
+              id='width'
+              value={width}
+              onChange={e => setWidth(e.target.value)}
+            />
+            px
+          </label>
+          <label htmlFor='height'>
+            Height
+            <input
+              type='number'
+              name='height'
+              id='height'
+              value={height}
+              onChange={e => setHeight(e.target.value)}
+            />
+            px
+          </label>
+          <label htmlFor='ignoreAspectRatio'>
+            Ignore aspect ratio
+            <input
+              type='checkbox'
+              name='ignoreAspectRatio'
+              id='ignoreAspectRatio'
+              checked={ignoreAspectRatio}
+              onChange={e => setIgnoreAspectRatio(e.target.checked)}
+            />
+          </label>
+        </FileUploadParametersContainer>
       </FileUploadForm>
-      {filename !== 'Choose File' && (
-        <FileUploadButton disabled={showProgressBar} onClick={onUploadFile}>
-          {message}{' '}
-          <ProgressBar active={showProgressBar} percentage={uploadPercentage} />
-        </FileUploadButton>
-      )}
+
+      <FileUploadButton
+        disabled={showProgressBar || filename === 'Choose File'}
+        onClick={onUploadFile}
+      >
+        {message}{' '}
+        <ProgressBar active={showProgressBar} percentage={uploadPercentage} />
+      </FileUploadButton>
     </FileUploadContainer>
   )
 }

@@ -26,18 +26,14 @@ app.post('/resize/:width/:height', async (request, response) => {
 
   const hash = uuid()
   const { width, height } = request.params
+  const { ignoreAspectRatio } = request.query
   const sourceImage = `${process.cwd()}/uploads/${hash}.${file.name}`
   const outputImage = `${process.cwd()}/uploads/tmp.${hash}.png`
-  const { aspectRatio } = request.query
 
   const resize = () => {
     return new Promise((resolve, reject) => {
       gm(sourceImage)
-        .resize(
-          width,
-          height,
-          aspectRatio && aspectRatio === 'ignore' ? '!' : null
-        )
+        .resize(width, height, ignoreAspectRatio ? '!' : null)
         .noProfile()
         .write(outputImage, err => {
           if (err) {
