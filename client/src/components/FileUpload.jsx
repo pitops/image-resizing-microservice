@@ -72,7 +72,13 @@ export default function FileUpload () {
       if (err.response.status === 500) {
         setMessage('There was a problem with the server')
       } else {
-        setMessage(err.response.data.msg)
+        const text = String.fromCharCode.apply(
+          null,
+          Array.from(new Uint8Array(err.response.data))
+        )
+        if (!text) return undefined
+        const parsedText = JSON.parse(text)
+        setMessage(parsedText.msg)
       }
     }
   }
@@ -99,6 +105,7 @@ export default function FileUpload () {
           className='file-input'
           id='fileInput'
           onChange={onChange}
+          accept='.png'
         />
         <FileUploadParametersContainer>
           <p>Parameters</p>

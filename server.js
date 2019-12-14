@@ -20,8 +20,14 @@ app.post('/resize/:width/:height', async (request, response) => {
   if (request.files === null) {
     return response.status(400).json({ msg: 'No file uploaded' })
   }
-
+  const acceptedMimeTypes = ['image/png']
   const file = request.files.file
+
+  if (!acceptedMimeTypes.includes(file.mimetype)) {
+    return response.status(415).json({
+      msg: 'File type not allowed. Please upload a png file.'
+    })
+  }
   const fileMove = util.promisify(file.mv)
 
   const hash = uuid()
@@ -60,7 +66,7 @@ app.post('/resize/:width/:height', async (request, response) => {
       }
     })
   } catch (err) {
-    response.send(err.message)
+    response.status(500).json({ msg: err.message })
   }
 })
 
